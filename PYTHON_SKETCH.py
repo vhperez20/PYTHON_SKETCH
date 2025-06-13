@@ -2,6 +2,10 @@ import tkinter as tk
 from tkinter.colorchooser import askcolor
 from PIL import ImageGrab
 
+# Pressure and touch
+from kivy.graphics import Color, Line
+from kivy.utils import get_color_from_hex
+
 class AdvancedSketchPad:
     def __init__(self, root):
         self.root = root
@@ -56,9 +60,9 @@ class AdvancedSketchPad:
             self.canvas.delete(self.undo_stack.pop())
 
     def choose_color(self):
-        color = askcolor()[1]
-        if color:
-            self.brush_color = color
+        color = askcolor(title="Select Brush Color")
+        if color[1]:
+            self.brush_color = color[1]
 
     def change_brush_size(self, val):
         self.brush_size = int(val)
@@ -70,6 +74,18 @@ class AdvancedSketchPad:
         y1 = y + self.canvas.winfo_height()
         img = ImageGrab.grab().crop((x, y, x1, y1))
         img.save("sketch.png")
+    
+    def on_touch_move(self, touch):
+        pressure = getattr(touch, 'pressure', 1.0)
+        width = max(1, 10 * pressure)
+        with self.canvas:
+            Color(*self.current_color)
+            Line(points=(touch.x, touch.y), width=width)
+        print("Touch info:", touch.profile)
+        print ("Pressure:", pressure)
+        for attr in touch.profile:
+            print(f"{attr}:", getattr(touch, attr, None))
+
 
 if __name__ == "__main__":
     root = tk.Tk()
